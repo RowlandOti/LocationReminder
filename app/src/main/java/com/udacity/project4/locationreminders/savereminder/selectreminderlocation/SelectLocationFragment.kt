@@ -7,6 +7,7 @@ import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Button
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -21,6 +22,7 @@ import com.google.android.gms.maps.model.MarkerOptions
 import com.tbruyelle.rxpermissions2.RxPermissions
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
+import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
@@ -67,6 +69,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         binding.viewModel = _viewModel
         binding.lifecycleOwner = this
 
+        binding.btnDone.setOnClickListener {
+            onLocationSelected()
+        }
+
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
 
@@ -82,13 +88,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         readyMap()
 
 //        DONE: add the map setup implementation
-//        TODO: zoom to the user location after taking his permission
-//        TODO: add style to the map
-//        TODO: put a marker to location that the user selected
-
-
-//        TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
+//        DONE: zoom to the user location after taking his permission
+//        DONE: add style to the map
+//        DONE: put a marker to location that the user selected
+//        Done: call this function after the user confirms on the selected location
     }
 
     private fun readyMap() {
@@ -97,9 +100,15 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     }
 
     private fun onLocationSelected() {
-        //        TODO: When the user confirms on the selected location,
+        //        DONE: When the user confirms on the selected location,
         //         send back the selected location details to the view model
         //         and navigate back to the previous fragment to save the reminder and add the geofence
+
+        lastKnownLocation?.let {
+            _viewModel.latitude.value = it.latitude
+            _viewModel.longitude.value = it.longitude
+            _viewModel.navigationCommand.postValue(NavigationCommand.Back)
+        }
     }
 
 
@@ -157,6 +166,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                         .title(getString(R.string.dropped_pin))
                         .snippet(snippet)
         )
+
+        lastKnownLocation = latLng
     }
 
 
