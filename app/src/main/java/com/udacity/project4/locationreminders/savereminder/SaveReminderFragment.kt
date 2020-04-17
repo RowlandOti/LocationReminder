@@ -24,7 +24,6 @@ import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
 
 private const val GEOFENCE_REQ_ID = ".geofence_id"
-private const val DEFAULT_GEOFENCE_RADIUS = 100F
 private const val DEFAULT_GEO_DURATION = 60 * 60 * 1000.toLong()
 
 class SaveReminderFragment : BaseFragment() {
@@ -32,6 +31,7 @@ class SaveReminderFragment : BaseFragment() {
     companion object {
         val TAG = SaveReminderFragment::class.java.simpleName
         const val ACTION_GEOFENCE_EVENT = "geofence_event"
+        const val DEFAULT_GEOFENCE_RADIUS = 100F
     }
 
     private lateinit var geoFencingClient: GeofencingClient

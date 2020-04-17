@@ -4,10 +4,10 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.res.Resources
+import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
 import android.view.*
-import android.widget.Button
 import android.widget.Toast
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.location.FusedLocationProviderClient
@@ -16,6 +16,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
+import com.google.android.gms.maps.model.CircleOptions
 import com.google.android.gms.maps.model.LatLng
 import com.google.android.gms.maps.model.MapStyleOptions
 import com.google.android.gms.maps.model.MarkerOptions
@@ -24,6 +25,7 @@ import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
+import com.udacity.project4.locationreminders.savereminder.SaveReminderFragment
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
@@ -168,6 +170,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         )
 
         lastKnownLocation = latLng
+
+        drawGeoFence(latLng)
     }
 
 
@@ -262,6 +266,16 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         } catch (e: Resources.NotFoundException) {
             Log.e(TAG, "Can't find style. Error: ", e)
         }
+    }
+
+    private fun drawGeoFence(latLng: LatLng) {
+        val circleOptions = CircleOptions()
+                .center(latLng)
+                .strokeColor(Color.argb(50, 70, 70, 70))
+                .fillColor(Color.argb(100, 150, 150, 150))
+                .radius(SaveReminderFragment.DEFAULT_GEOFENCE_RADIUS.toDouble())
+        val geoFenceLimits = map!!.addCircle(circleOptions)
+        //geoFenceLimits.remove()
     }
 
     override fun onRequestPermissionsResult(
