@@ -26,12 +26,12 @@ import org.koin.android.ext.android.inject
 private const val GEOFENCE_REQ_ID = ".geofence_id"
 private const val DEFAULT_GEOFENCE_RADIUS = 100F
 private const val DEFAULT_GEO_DURATION = 60 * 60 * 1000.toLong()
-private const val ACTION_GEOFENCE_EVENT = "geofence_event"
 
 class SaveReminderFragment : BaseFragment() {
 
     companion object {
         val TAG = SaveReminderFragment::class.java.simpleName
+        const val ACTION_GEOFENCE_EVENT = "geofence_event"
     }
 
     private lateinit var geoFencingClient: GeofencingClient
@@ -75,19 +75,19 @@ class SaveReminderFragment : BaseFragment() {
 //             1) add a geofencing request
 //             2) save the reminder to the local db
 
-            val geofence = createGeofence(LatLng(latitude!!, longitude!!))
+            val reminder = ReminderDataItem(title, description, location, latitude, longitude)
+            saveReminder(reminder)
+
+            val geofence = createGeofence(LatLng(latitude!!, longitude!!), reminder.id)
             val geofenceRequest = createGeofenceRequest(geofence)
 
             addGeoFence(geofenceRequest, geofencePendingIntent())
-
-            val reminder = ReminderDataItem(title, description, location, latitude, longitude)
-            saveReminder(reminder)
         }
     }
 
-    private fun createGeofence(latLng: LatLng, radius: Float = DEFAULT_GEOFENCE_RADIUS): Geofence {
+    private fun createGeofence(latLng: LatLng, id: String, radius: Float = DEFAULT_GEOFENCE_RADIUS): Geofence {
         return Geofence.Builder()
-                .setRequestId(GEOFENCE_REQ_ID)
+                .setRequestId(id)
                 .setCircularRegion(latLng.latitude, latLng.longitude, radius)
                 .setExpirationDuration(DEFAULT_GEO_DURATION)
                 .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER or Geofence.GEOFENCE_TRANSITION_EXIT)

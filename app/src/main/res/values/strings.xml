@@ -44,4 +44,5 @@
     <string name="permissions_request_settings">Go to settings to manually grant us denied permissions</string>
   <string name="done">Done</string>
   <string name="geofences_added">Geofence was added successfully</string>
+  <string name="fencing_event_error">Error occured while handling geofencing with code :%d</string>
 </resources>
