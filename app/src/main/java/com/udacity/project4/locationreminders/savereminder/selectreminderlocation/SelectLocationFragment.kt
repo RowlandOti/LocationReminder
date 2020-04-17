@@ -4,7 +4,6 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 import android.Manifest
 import android.annotation.SuppressLint
 import android.content.res.Resources
-import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -29,8 +28,8 @@ import org.koin.android.ext.android.inject
 import java.util.*
 
 
-private const val KEY_CAMERA_POSITION = "camera_position"
-private const val KEY_LOCATION = "location"
+private const val KEY_ZOOM = "camera_zoom"
+private const val KEY_LOCATION = "map_location"
 private const val DEFAULT_ZOOM = 17f
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
@@ -40,8 +39,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         val DEFAULT_LOCATION_LATLNG = LatLng(27.2038, 77.5011)
     }
 
+    private var lastKnownLocation: LatLng? = null
     private var fusedLocationProviderClient: FusedLocationProviderClient? = null
-    private var lastKnownLocation: Location? = null
+    private var lastKnownZoom: Float = DEFAULT_ZOOM
 
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
@@ -52,6 +52,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override fun onCreateView(
             inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
+        if (savedInstanceState != null) {
+            lastKnownLocation = savedInstanceState.getParcelable(KEY_LOCATION)
+            lastKnownZoom = savedInstanceState.getFloat(KEY_ZOOM)
+        }
         binding =
                 DataBindingUtil.inflate(
                         inflater,
@@ -127,7 +131,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override fun onMapReady(gooleMap: GoogleMap?) {
         map = gooleMap
 
-        requestPermission()
+        if (lastKnownLocation != null) {
+            addMarker(lastKnownLocation!!, lastKnownZoom)
+        } else {
+            requestPermission()
+        }
 
         setMapStyle()
         setMapLongClick()
@@ -209,9 +217,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
             locationResult?.addOnCompleteListener(activity!!) { task ->
                 if (task.isSuccessful) {
-                    lastKnownLocation = task.result
-                    val latLng = LatLng(lastKnownLocation?.latitude!!, lastKnownLocation?.longitude!!)
-                    addMarker(latLng)
+                    val location = task.result
+                    lastKnownLocation = LatLng(location?.latitude!!, location.longitude)
+                    addMarker(lastKnownLocation!!)
                 } else {
                     Log.d(
                             TAG,
@@ -256,8 +264,14 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putParcelable(KEY_CAMERA_POSITION, map?.cameraPosition);
-        outState.putParcelable(KEY_LOCATION, lastKnownLocation);
+        outState.putParcelable(
+                KEY_LOCATION,
+                LatLng(
+                        map?.cameraPosition?.target!!.latitude,
+                        map?.cameraPosition?.target!!.longitude
+                )
+        )
+        outState.putFloat(KEY_ZOOM, map?.cameraPosition!!.zoom);
         super.onSaveInstanceState(outState);
     }
 }
