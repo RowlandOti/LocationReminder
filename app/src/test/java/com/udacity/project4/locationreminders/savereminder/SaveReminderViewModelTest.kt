@@ -6,8 +6,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.MainCoroutineRule
 import com.udacity.project4.R
 import com.udacity.project4.locationreminders.data.FakeDataSource
-import com.udacity.project4.locationreminders.data.FakerUtils
 import com.udacity.project4.locationreminders.getOrAwaitValue
+import com.udacity.project4.utils.FakerUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.hamcrest.CoreMatchers
 import org.junit.After
