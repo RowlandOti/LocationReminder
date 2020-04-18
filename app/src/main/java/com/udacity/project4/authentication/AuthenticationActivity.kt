@@ -24,8 +24,6 @@ class AuthenticationActivity : AppCompatActivity() {
         const val SIGN_IN_RESULT_CODE = 1001
     }
 
-    // Get a reference to the ViewModel scoped to this Fragment
-    //private val viewModel by viewModels<AuthenticationViewModel>()
     private val viewModel: AuthenticationViewModel by inject()
 
     override fun onCreate(savedInstanceState: Bundle?) {
