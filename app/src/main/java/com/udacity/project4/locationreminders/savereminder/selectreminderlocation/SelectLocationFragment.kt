@@ -16,10 +16,7 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
-import com.google.android.gms.maps.model.CircleOptions
-import com.google.android.gms.maps.model.LatLng
-import com.google.android.gms.maps.model.MapStyleOptions
-import com.google.android.gms.maps.model.MarkerOptions
+import com.google.android.gms.maps.model.*
 import com.tbruyelle.rxpermissions2.RxPermissions
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
@@ -43,7 +40,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         val DEFAULT_LOCATION_LATLNG = LatLng(27.2038, 77.5011)
     }
 
+    private var geoFenceLimits: Circle? = null
     private var lastKnownLocation: LatLng? = null
+    private var lastKnownLocationName: String? = null
     private var fusedLocationProviderClient: FusedLocationProviderClient? = null
     private var lastKnownZoom: Float = DEFAULT_ZOOM
 
@@ -109,6 +108,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         lastKnownLocation?.let {
             _viewModel.latitude.value = it.latitude
             _viewModel.longitude.value = it.longitude
+            _viewModel.reminderSelectedLocationStr.value = lastKnownLocationName
             _viewModel.navigationCommand.postValue(NavigationCommand.Back)
         }
     }
@@ -149,7 +149,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
 
         setMapStyle()
-        setMapLongClick()
+        //setMapLongClick()
         setPoiClick()
     }
 
@@ -171,7 +171,24 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         lastKnownLocation = latLng
 
-        drawGeoFence(latLng)
+        //drawGeoFence(latLng)
+    }
+
+    private fun addPoiMarker(
+            poi: PointOfInterest,
+            zoomLevel: Float = DEFAULT_ZOOM
+    ) {
+        this.map?.animateCamera(CameraUpdateFactory.newLatLngZoom(poi.latLng, zoomLevel))
+        this.map?.addMarker(
+                MarkerOptions()
+                        .position(poi.latLng)
+                        .title(poi.name)
+        )?.showInfoWindow()
+
+        lastKnownLocation = poi.latLng
+        lastKnownLocationName = poi.name
+
+        drawGeoFence(poi.latLng)
     }
 
 
@@ -183,12 +200,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     private fun setPoiClick() {
         map?.setOnPoiClickListener { poi ->
-            val poiMarker = map?.addMarker(
-                    MarkerOptions()
-                            .position(poi.latLng)
-                            .title(poi.name)
-            )
-            poiMarker?.showInfoWindow()
+            addPoiMarker(poi)
         }
     }
 
@@ -274,8 +286,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 .strokeColor(Color.argb(50, 70, 70, 70))
                 .fillColor(Color.argb(100, 150, 150, 150))
                 .radius(SaveReminderFragment.DEFAULT_GEOFENCE_RADIUS.toDouble())
-        val geoFenceLimits = map!!.addCircle(circleOptions)
-        //geoFenceLimits.remove()
+
+        geoFenceLimits?.remove()
+        geoFenceLimits = map!!.addCircle(circleOptions)
     }
 
     override fun onRequestPermissionsResult(

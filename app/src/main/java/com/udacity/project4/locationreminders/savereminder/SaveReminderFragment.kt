@@ -112,15 +112,19 @@ class SaveReminderFragment : BaseFragment() {
             addOnCompleteListener {
                 geoFencingClient.addGeofences(geoFencingRequest, geofencePIntent)?.run {
                     addOnSuccessListener {
-                        Toast.makeText(activity, R.string.geofences_added,
-                                Toast.LENGTH_SHORT)
-                                .show()
-                        //Log.e("Add Geofence", geofence.requestId)
-                        //_viewModel.geofenceActivated()
+                        activity?.let {
+                            Toast.makeText(activity, R.string.geofences_added,
+                                    Toast.LENGTH_SHORT)
+                                    .show()
+                        }
                     }
                     addOnFailureListener {
-                        Toast.makeText(activity, R.string.geofences_not_added,
-                                Toast.LENGTH_SHORT).show()
+                        activity?.let {
+                            Toast.makeText(
+                                    activity, R.string.geofences_not_added,
+                                    Toast.LENGTH_SHORT
+                            ).show()
+                        }
                         if ((it.message != null)) {
                             Log.w(TAG, it.message.toString())
                         }
