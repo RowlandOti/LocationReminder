@@ -40,6 +40,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         val DEFAULT_LOCATION_LATLNG = LatLng(27.2038, 77.5011)
     }
 
+    private var marker: Marker? = null
     private var geoFenceLimits: Circle? = null
     private var lastKnownLocation: LatLng? = null
     private var lastKnownLocationName: String? = null
@@ -149,29 +150,36 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
 
         setMapStyle()
-        //setMapLongClick()
+        setMapLongClick()
         setPoiClick()
     }
 
 
     private fun addMarker(latLng: LatLng, zoomLevel: Float = DEFAULT_ZOOM) {
-        val snippet = String.format(
+        val snippet = getLocationSnippet(latLng)
+
+        this.map?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel))
+        marker?.remove()
+        marker = this.map?.addMarker(
+                MarkerOptions().position(latLng)
+                        .title(getString(R.string.dropped_pin))
+                        .snippet(snippet)
+        )
+        marker?.showInfoWindow()
+
+        lastKnownLocation = latLng
+        lastKnownLocationName = snippet
+
+        drawGeoFence(latLng)
+    }
+
+    private fun getLocationSnippet(latLng: LatLng) : String {
+        return  String.format(
                 Locale.getDefault(),
                 "Lat: %1$.5f, Long: %2$.5f",
                 latLng.latitude,
                 latLng.longitude
         )
-
-        this.map?.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoomLevel))
-        this.map?.addMarker(
-                MarkerOptions().position(latLng)
-                        .title(getString(R.string.dropped_pin))
-                        .snippet(snippet)
-        )
-
-        lastKnownLocation = latLng
-
-        //drawGeoFence(latLng)
     }
 
     private fun addPoiMarker(
@@ -179,11 +187,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             zoomLevel: Float = DEFAULT_ZOOM
     ) {
         this.map?.animateCamera(CameraUpdateFactory.newLatLngZoom(poi.latLng, zoomLevel))
-        this.map?.addMarker(
+        marker?.remove()
+        marker = this.map?.addMarker(
                 MarkerOptions()
                         .position(poi.latLng)
                         .title(poi.name)
-        )?.showInfoWindow()
+        )
+        marker?.showInfoWindow()
 
         lastKnownLocation = poi.latLng
         lastKnownLocationName = poi.name
@@ -246,6 +256,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 if (task.isSuccessful) {
                     val location = task.result
                     lastKnownLocation = LatLng(location?.latitude!!, location.longitude)
+                    lastKnownLocationName = getLocationSnippet(lastKnownLocation!!)
                     addMarker(lastKnownLocation!!)
                 } else {
                     Log.d(
@@ -288,7 +299,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 .radius(SaveReminderFragment.DEFAULT_GEOFENCE_RADIUS.toDouble())
 
         geoFenceLimits?.remove()
-        geoFenceLimits = map!!.addCircle(circleOptions)
+        geoFenceLimits = this.map!!.addCircle(circleOptions)
     }
 
     override fun onRequestPermissionsResult(
@@ -305,11 +316,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         outState.putParcelable(
                 KEY_LOCATION,
                 LatLng(
-                        map?.cameraPosition?.target!!.latitude,
-                        map?.cameraPosition?.target!!.longitude
+                        this.map?.cameraPosition?.target!!.latitude,
+                        this.map?.cameraPosition?.target!!.longitude
                 )
         )
-        outState.putFloat(KEY_ZOOM, map?.cameraPosition!!.zoom);
+        outState.putFloat(KEY_ZOOM, this.map?.cameraPosition!!.zoom);
         super.onSaveInstanceState(outState);
     }
 }
