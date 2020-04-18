@@ -38,9 +38,9 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="{$MAPS_API_KEY}" />
 
-        <activity android:name=".authentication.AuthenticationActivity">
+        <activity android:name=".locationreminders.RemindersActivity">
         </activity>
-        <activity android:name=".locationreminders.RemindersActivity" >
+        <activity android:name=".authentication.AuthenticationActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
