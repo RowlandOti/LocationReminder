@@ -5,6 +5,10 @@ apply plugin: "androidx.navigation.safeargs.kotlin"
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'com.google.gms.google-services'
 
+def apiKeyPropertiesFile = rootProject.file("secrets.properties");
+def apiKeyProperties = new Properties()
+apiKeyProperties.load(new FileInputStream(apiKeyPropertiesFile))
+
 android {
     signingConfigs {
         config {
@@ -25,7 +29,7 @@ android {
         versionName "1.0"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
-        manifestPlaceholders = [MAPS_API_KEY: "$System.env.MAPS_API_KEY"]
+        manifestPlaceholders = [MAPS_API_KEY: apiKeyProperties["MAPS_API_KEY"]]
     }
     buildTypes {
         debug {
