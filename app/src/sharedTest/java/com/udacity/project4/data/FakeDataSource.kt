@@ -31,6 +31,6 @@ class FakeDataSource(var tasks: MutableList<ReminderDTO>? = mutableListOf()) :
     }
 
     fun clear() {
-        tasks = mutableListOf()
+        tasks = null
     }
 }

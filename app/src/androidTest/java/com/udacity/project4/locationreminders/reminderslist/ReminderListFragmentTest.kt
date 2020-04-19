@@ -113,6 +113,16 @@ class ReminderListFragmentTest :
         verify(navController).navigate(ReminderListFragmentDirections.toSaveReminder())
     }
 
+    @Test
+    fun remindersList_ErrorSnackBackShown() = runBlockingTest {
+        fakeDataSource.clear()
+        // WHEN - Details fragment launched to display task
+        val scenario = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
+
+        onView(withText("No reminders found"))
+                .check(matches(isDisplayed()))
+    }
+
     private fun childAtPosition(
             parentMatcher: Matcher<View>, position: Int
     ): Matcher<View> {
