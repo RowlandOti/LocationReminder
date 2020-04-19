@@ -4,7 +4,7 @@ import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.udacity.project4.MainCoroutineRule
-import com.udacity.project4.locationreminders.data.FakeDataSource
+import com.udacity.project4.data.FakeDataSource
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import com.udacity.project4.utils.FakerUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -61,7 +61,8 @@ class RemindersListViewModelTest {
 
     @Test
     fun check_loading() {
-        fakeDataSource = FakeDataSource(mutableListOf())
+        fakeDataSource =
+                FakeDataSource(mutableListOf())
         reminderListViewModel =
                 RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
 

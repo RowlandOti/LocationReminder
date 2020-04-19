@@ -43,8 +43,10 @@ Explain what each test does and why
 ```
 1.androidTest
         //TODO: Students explain their testing here.
+        Test for Instrumented tests that require device to run
 2. test
         //TODO: Students explain their testing here.
+        Tests for unit tests, and which ony requires JVM to run
 ```
 
 ## Project Instructions
