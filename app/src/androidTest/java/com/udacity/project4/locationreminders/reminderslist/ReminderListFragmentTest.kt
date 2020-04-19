@@ -43,7 +43,7 @@ class ReminderListFragmentTest :
 
 //    DONE: test the navigation of the fragments.
 //    DONE: test the displayed data on the UI.
-//    TODO: add testing for the error messages.
+//    DONE: add testing for the error messages.
 
     private lateinit var fakeDataSource: FakeDataSource
     private lateinit var reminderListViewModel: RemindersListViewModel
