@@ -42,11 +42,17 @@ Explain what each test does and why
 
 ```
 1.androidTest
-        //TODO: Students explain their testing here.
+        //DONE: Students explain their testing here.
         Test for Instrumented tests that require device to run
+
+        - Automation Testing using ViewMatchers and ViewInteractions to simulate user interactions with the app.
+        - Testing for Snackbar and Toast messages.
+        - Testing the fragments’ navigation.
+        - The testing classes are at androidTest package.
 2. test
-        //TODO: Students explain their testing here.
+        //DONE: Students explain their testing here.
         Tests for unit tests, and which ony requires JVM to run
+        - Use of mockito for stubbing, fakes e.t.c
 ```
 
 ## Project Instructions
