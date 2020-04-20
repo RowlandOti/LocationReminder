@@ -11,7 +11,6 @@ import androidx.test.espresso.ViewAction
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.LargeTest
@@ -90,7 +89,7 @@ class RemindersActivityTest :
     }
 
 
-//    TODO: add End to End testing to the app
+//    DONE: add End to End testing to the app
 
 
     @Test
@@ -104,8 +103,25 @@ class RemindersActivityTest :
         onView(withId(R.id.selectLocation)).perform(setTextInTextView("Nairobi National Park"))
         onView(withId(R.id.saveReminder)).perform(click())
 
-        // Verify task is displayed on screen in the task list.
+        // Verify reminder is displayed on screen in the list.
         onView(withText("NEW TITLE")).check(matches(isDisplayed()))
+
+        activityScenario.close()
+    }
+
+    @Test
+    fun addNewReminder_Fails_ErrorSnackBarShown()  {
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+
+        // Click on the edit button, create, and save.
+        onView(withId(R.id.addReminderFAB)).perform(click())
+        onView(withId(R.id.reminderTitle)).perform(replaceText("NEW TITLE"))
+        onView(withId(R.id.reminderDescription)).perform(replaceText("NEW DESCRIPTION"))
+        onView(withId(R.id.saveReminder)).perform(click())
+
+        // Verify error snackbar is displayed on screen.
+        onView(withText(R.string.err_select_location))
+                .check(matches(isDisplayed()))
 
         activityScenario.close()
     }
@@ -114,7 +130,7 @@ class RemindersActivityTest :
         return object : ViewAction {
             override fun getConstraints(): Matcher<View> {
                 return CoreMatchers.allOf(
-                        ViewMatchers.isDisplayed(), ViewMatchers.isAssignableFrom(
+                        isDisplayed(), isAssignableFrom(
                         TextView::class.java
                 )
                 )
