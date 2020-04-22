@@ -153,7 +153,7 @@ dependencies {
 
     androidTestImplementation "com.github.blocoio:faker:1.2.8"
     androidTestImplementation "com.google.truth:truth:$truthVersion"
-
+    testImplementation "com.github.blocoio:faker:1.2.8"
     //Maps & Geofencing
     implementation "com.google.android.gms:play-services-location:$playServicesVersion"
     implementation "com.google.android.gms:play-services-maps:$playServicesVersion"
