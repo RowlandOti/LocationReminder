@@ -3,20 +3,29 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.annotation.TargetApi
+import android.content.IntentSender
+import android.content.pm.PackageManager
 import android.content.res.Resources
 import android.graphics.Color
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.Toast
+import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.FusedLocationProviderClient
+import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationServices
+import com.google.android.gms.location.LocationSettingsRequest
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.snackbar.Snackbar
 import com.tbruyelle.rxpermissions2.RxPermissions
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
@@ -32,6 +41,8 @@ import java.util.*
 private const val KEY_ZOOM = "camera_zoom"
 private const val KEY_LOCATION = "map_location"
 private const val DEFAULT_ZOOM = 17f
+private const val REQUEST_CODE_BACKGROUND = 102929
+private const val REQUEST_TURN_DEVICE_LOCATION_ON = 12433
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
@@ -110,8 +121,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             _viewModel.latitude.value = it.latitude
             _viewModel.longitude.value = it.longitude
             _viewModel.reminderSelectedLocationStr.value = lastKnownLocationName
-            _viewModel.navigationCommand.postValue(NavigationCommand.Back)
         }
+        _viewModel.navigationCommand.postValue(NavigationCommand.Back)
     }
 
 
@@ -173,8 +184,8 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         drawGeoFence(latLng)
     }
 
-    private fun getLocationSnippet(latLng: LatLng) : String {
-        return  String.format(
+    private fun getLocationSnippet(latLng: LatLng): String {
+        return String.format(
                 Locale.getDefault(),
                 "Lat: %1$.5f, Long: %2$.5f",
                 latLng.latitude,
@@ -222,8 +233,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     // will emit 1 Permission object
                     when {
                         permission.granted -> {
-                            // All permissions are granted !
-                            getCurrentLocation()
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                                // All permissions are granted !
+                                checkDeviceLocationSettings()
+                            } else {
+                                requestQPermission()
+                            }
                         }
                         permission.shouldShowRequestPermissionRationale -> {
                             // At least one denied permission without ask never again
@@ -246,6 +261,31 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 }
     }
 
+    @TargetApi(Build.VERSION_CODES.Q)
+    private fun requestQPermission() {
+        val hasForegroundPermission = ActivityCompat.checkSelfPermission(
+                activity!!,
+                Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasForegroundPermission) {
+            val hasBackgroundPermission = ActivityCompat.checkSelfPermission(
+                    activity!!,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED
+            if (hasBackgroundPermission) {
+                // All permissions are granted !
+                checkDeviceLocationSettings()
+            } else {
+                ActivityCompat.requestPermissions(
+                        activity!!,
+                        arrayOf(Manifest.permission.ACCESS_BACKGROUND_LOCATION),
+                        REQUEST_CODE_BACKGROUND
+                )
+            }
+        }
+    }
+
     private fun getCurrentLocation() {
         map?.isMyLocationEnabled = true
 
@@ -255,9 +295,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             locationResult?.addOnCompleteListener(activity!!) { task ->
                 if (task.isSuccessful) {
                     val location = task.result
-                    lastKnownLocation = LatLng(location?.latitude!!, location.longitude)
-                    lastKnownLocationName = getLocationSnippet(lastKnownLocation!!)
-                    addMarker(lastKnownLocation!!)
+                    location?.let {
+                        lastKnownLocation = LatLng(it.latitude, it.longitude)
+                        lastKnownLocationName = getLocationSnippet(lastKnownLocation!!)
+                        addMarker(lastKnownLocation!!)
+                    }
                 } else {
                     Log.d(
                             TAG,
@@ -270,6 +312,40 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             }
         } catch (e: SecurityException) {
             Log.e("Exception: %s", e.message)
+        }
+    }
+
+    private fun checkDeviceLocationSettings(resolve: Boolean = true) {
+        val locationRequest = LocationRequest.create().apply {
+            priority = LocationRequest.PRIORITY_LOW_POWER
+        }
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        val settingsClient = LocationServices.getSettingsClient(activity!!)
+        val locationSettingsResponseTask =
+                settingsClient.checkLocationSettings(builder.build())
+        locationSettingsResponseTask.addOnFailureListener { exception ->
+            if (exception is ResolvableApiException && resolve) {
+                try {
+                    exception.startResolutionForResult(
+                            activity!!,
+                            REQUEST_TURN_DEVICE_LOCATION_ON
+                    )
+                } catch (sendEx: IntentSender.SendIntentException) {
+                    Log.d(TAG, "Error getting location settings resolution: " + sendEx.message)
+                }
+            } else {
+                Snackbar.make(
+                        view!!,
+                        R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+                ).setAction(android.R.string.ok) {
+                    checkDeviceLocationSettings()
+                }.show()
+            }
+        }
+        locationSettingsResponseTask.addOnCompleteListener {
+            if (it.isSuccessful) {
+                getCurrentLocation()
+            }
         }
     }
 
@@ -308,7 +384,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        getCurrentLocation()
+        if (requestCode == REQUEST_CODE_BACKGROUND) {
+            checkDeviceLocationSettings()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
